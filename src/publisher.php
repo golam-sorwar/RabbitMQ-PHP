@@ -55,7 +55,7 @@ $channel->queue_bind($queue, $exchange);
 
 $faker = Faker\Factory::create();
 
-$limit = 5000;
+$limit = 500;
 $iteration = 0;
 
 for ($iteration = 0; $iteration < $limit; $iteration++) {
