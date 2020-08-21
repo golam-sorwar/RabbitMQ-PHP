@@ -1,50 +1,67 @@
 <?php
 
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Exchange\AMQPExchangeType;
-use PhpAmqpLib\Message\AMQPMessage;
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$exchange = 'router';
-$queue = 'msgs';
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
 $host = 'localhost';
 $port = 5672;
 $user = 'guest';
 $pass = 'guest';
 $vhost = '/';
+$exchange = 'subscribers';
+$queue = 'customer_email';
 
+
+/**
+ * @param string $host
+ * @param string $port
+ * @param string $user
+ * @param string $password
+ * @param string $vhost
+ */
 $connection = new AMQPStreamConnection($host, $port, $user, $pass, $vhost);
 $channel = $connection->channel();
 
-/*
-    The following code is the same both in the consumer and the producer.
-    In this way we are sure we always have a queue to consume from and an
-        exchange where to publish messages.
-*/
 
-/*
-    name: $queue
-    passive: false
-    durable: true // the queue will survive server restarts
-    exclusive: false // the queue can be accessed in other channels
-    auto_delete: false //the queue won't be deleted once the channel is closed.
-*/
+/**
+ * Declares queue, creates if needed
+ * @param string $queue name: $queue
+ * @param bool $passive false
+ * @param bool $durable true - the queue will survive server restarts
+ * @param bool $exclusive false - the queue can be accessed in other channels
+ * @param bool $auto_delete false - the queue won't be deleted once the channel is closed
+ */
 $channel->queue_declare($queue, false, true, false, false);
 
-/*
-    name: $exchange
-    type: direct
-    passive: false
-    durable: true // the exchange will survive server restarts
-    auto_delete: false //the exchange won't be deleted once the channel is closed.
-*/
 
-$channel->exchange_declare($exchange, AMQPExchangeType::DIRECT, false, true, false);
+/**
+ * Declares exchange
+ * @param string $exchange
+ * @param string $type
+ * @param bool $passive
+ * @param bool $durable
+ * @param bool $auto_delete
+ */
+$channel->exchange_declare($exchange, 'direct', false, true, false);
 
+/**
+ * Binds queue to an exchange
+ * @param string $queue
+ * @param string $exchange
+ */
 $channel->queue_bind($queue, $exchange);
 
-$messageBody = implode(' ', array_slice($argv, 1));
-$message = new AMQPMessage($messageBody, array('content_type' => 'text/plain', 'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT));
+$messageBody = json_encode([
+    'email' => 'akibmd719@gmail.com',
+    'name' => 'akib'
+]);
+
+$message = new AMQPMessage($messageBody, [
+    'content_type' => 'text/plain',
+    'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT
+]);
 $channel->basic_publish($message, $exchange);
 
 $channel->close();
