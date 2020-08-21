@@ -53,16 +53,28 @@ $channel->exchange_declare($exchange, 'direct', false, true, false);
  */
 $channel->queue_bind($queue, $exchange);
 
-$messageBody = json_encode([
-    'email' => 'akibmd719@gmail.com',
-    'name' => 'akib'
-]);
+$faker = Faker\Factory::create();
 
-$message = new AMQPMessage($messageBody, [
-    'content_type' => 'text/plain',
-    'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT
-]);
-$channel->basic_publish($message, $exchange);
+$limit = 5000;
+$iteration = 0;
+
+for ($iteration = 0; $iteration < $limit; $iteration++) {
+
+    $messageBody = json_encode([
+        'name' => $faker->name,
+        'email' => $faker->email,
+        'address' => $faker->address
+    ]);
+
+    $message = new AMQPMessage($messageBody, [
+        'content_type' => 'application/json',
+        'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT
+    ]);
+
+    $channel->basic_publish($message, $exchange);
+
+}
+
 
 $channel->close();
 $connection->close();
