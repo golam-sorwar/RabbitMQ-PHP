@@ -9,8 +9,9 @@ $port = 5672;
 $user = 'guest';
 $pass = 'guest';
 $vhost = '/';
-$exchange = 'subscribers';
-$queue = 'customer_email';
+$exchange = 'queue_exchange';
+$queue = 'queue_queue';
+$route = 'route.queue_route';
 
 
 /**
@@ -49,8 +50,10 @@ $channel->exchange_declare($exchange, 'direct', false, true, false);
  * Binds queue to an exchange
  * @param string $queue
  * @param string $exchange
+ * @param string $route
  */
-$channel->queue_bind($queue, $exchange);
+$channel->queue_bind($queue, $exchange, $route);
+
 
 /**
  * @param mixed $message
@@ -61,11 +64,10 @@ function processMessage($message)
     $email = $messageBody->email;
 
     file_put_contents(
-        dirname(__DIR__).'/data/'.$email.'.json',
+        dirname(__DIR__) . '/data/' . $email . '.json',
         $message->body
     );
 
-    // $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
 }
 
 
