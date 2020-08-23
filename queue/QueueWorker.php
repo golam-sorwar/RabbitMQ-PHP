@@ -67,6 +67,8 @@ function processMessage($message)
         dirname(__DIR__) . '/data/' . $email . '.json',
         $message->body
     );
+    
+    $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
 
 }
 

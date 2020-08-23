@@ -49,6 +49,8 @@ function processMessage($message)
         $message->body
     );
 
+    $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
+    
 }
 
 
